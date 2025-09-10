@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import CalendarWeek from '@/components/CalendarWeek'
 import BookmarksList from '@/components/BookmarksList'
-import MonthNav from '@/components/MonthNav'
 import EventPreview from '@/components/EventPreview'
 import { parseCSV, getWeekNumber, getWeekStart, Event } from '@/lib/csvParser'
 import styles from './page.module.css'
@@ -13,6 +12,7 @@ export default function HomePage() {
   const [bookmarks, setBookmarks] = useState<Record<string, Event>>({})
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [activeMonth, setActiveMonth] = useState<number | null>(null)
+  const [showMonthDropdown, setShowMonthDropdown] = useState(false)
   const [minimizedPanes, setMinimizedPanes] = useState<Record<string, boolean>>({
     calendar: false,
     event: false,
@@ -24,7 +24,16 @@ export default function HomePage() {
     loadCSV()
     const saved = localStorage.getItem('bookmarks')
     if (saved) {
-      setBookmarks(JSON.parse(saved))
+      const parsedBookmarks = JSON.parse(saved)
+      // Convert date strings back to Date objects
+      const bookmarksWithDates: Record<string, Event> = {}
+      Object.entries(parsedBookmarks).forEach(([url, event]: [string, any]) => {
+        bookmarksWithDates[url] = {
+          ...event,
+          date: new Date(event.date)
+        }
+      })
+      setBookmarks(bookmarksWithDates)
     }
   }, [])
 
@@ -83,6 +92,7 @@ export default function HomePage() {
     }
     
     setActiveMonth(monthIndex)
+    setShowMonthDropdown(false)
   }
 
   const togglePane = (pane: 'calendar' | 'event' | 'bookmarks') => {
@@ -114,15 +124,35 @@ export default function HomePage() {
         <div className={styles.paneHeader}>
           <span className={styles.paneTitle}>2025 AI Events</span>
           <div className={styles.paneControls}>
+            <div className={styles.monthDropdown}>
+              <button 
+                className={styles.dropdownBtn}
+                onClick={() => setShowMonthDropdown(!showMonthDropdown)}
+              >
+                Jump to {activeMonth !== null ? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][activeMonth] : 'Month'} ▼
+              </button>
+              {showMonthDropdown && (
+                <div className={styles.dropdownMenu}>
+                  {['January', 'February', 'March', 'April', 'May', 'June', 
+                    'July', 'August', 'September', 'October', 'November', 'December'].map((month, index) => (
+                    <button
+                      key={month}
+                      className={`${styles.dropdownItem} ${activeMonth === index ? styles.active : ''}`}
+                      onClick={() => scrollToMonth(index)}
+                    >
+                      {month}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <button className={styles.minimizeBtn} onClick={() => togglePane('calendar')}>
               {minimizedPanes.calendar ? '+' : '−'}
             </button>
           </div>
         </div>
         {!minimizedPanes.calendar && (
-          <>
-            <MonthNav activeMonth={activeMonth} onMonthClick={scrollToMonth} />
-            <div className={styles.paneContent}>
+          <div className={styles.paneContent}>
               <div className={styles.calendarWeeks} ref={calendarRef}>
                 {[...Array(52)].map((_, weekNum) => {
                   const week = weeks[weekNum + 1] || {
@@ -142,8 +172,7 @@ export default function HomePage() {
                   )
                 })}
               </div>
-            </div>
-          </>
+          </div>
         )}
       </div>
 

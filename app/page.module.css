@@ -82,6 +82,67 @@
 .paneControls {
   display: flex;
   gap: 8px;
+  align-items: center;
+}
+
+.monthDropdown {
+  position: relative;
+}
+
+.dropdownBtn {
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.dropdownBtn:hover {
+  background: var(--hover);
+  border-color: var(--accent);
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 20;
+  min-width: 140px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.dropdownItem {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  text-align: left;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.dropdownItem:hover {
+  background: var(--hover);
+}
+
+.dropdownItem.active {
+  background: var(--accent);
+  color: white;
+  font-weight: 600;
 }
 
 .minimizeBtn {
