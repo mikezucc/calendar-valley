@@ -1,0 +1,167 @@
+.previewContainer {
+  height: 100%;
+  overflow-y: auto;
+  background: var(--bg);
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 32px;
+  text-align: center;
+}
+
+.emptyIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.emptyTitle {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--accent);
+}
+
+.emptyDescription {
+  font-size: 14px;
+  color: #666;
+}
+
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 16px;
+  color: #666;
+  font-size: 14px;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.previewContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.imageContainer {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: var(--week-header);
+  overflow: hidden;
+  position: relative;
+}
+
+.previewImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.imagePlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+}
+
+.placeholderIcon {
+  font-size: 64px;
+  opacity: 0.3;
+}
+
+.eventDetails {
+  padding: 24px;
+}
+
+.eventMeta {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  font-size: 12px;
+  color: #666;
+  flex-wrap: wrap;
+}
+
+.eventDate,
+.eventTime,
+.eventLocation {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.eventTitle {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+
+.siteName {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 16px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.eventDescription {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #333;
+  margin-bottom: 24px;
+}
+
+.eventLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: var(--accent);
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.eventLink:hover {
+  background: #000;
+  transform: translateY(-1px);
+}
+
+.linkIcon {
+  font-size: 16px;
+}
+
+.errorNote {
+  margin-top: 16px;
+  padding: 12px;
+  background: rgba(255, 107, 107, 0.1);
+  border-left: 3px solid var(--bookmark);
+  font-size: 13px;
+  color: #666;
+}

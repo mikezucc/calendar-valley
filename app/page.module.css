@@ -1,0 +1,130 @@
+.appContainer {
+  display: grid;
+  grid-template-columns: 400px 1fr 320px;
+  height: 100vh;
+  width: 100vw;
+  transition: grid-template-columns 0.3s ease;
+}
+
+.pane {
+  position: relative;
+  overflow: hidden;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+}
+
+.pane:last-child {
+  border-right: none;
+}
+
+.pane.minimized {
+  width: 48px !important;
+}
+
+.appContainer:has(.pane:nth-child(1).minimized) {
+  grid-template-columns: 48px 1fr 320px;
+}
+
+.appContainer:has(.pane:nth-child(2).minimized) {
+  grid-template-columns: 400px 48px 320px;
+}
+
+.appContainer:has(.pane:nth-child(3).minimized) {
+  grid-template-columns: 400px 1fr 48px;
+}
+
+.appContainer:has(.pane:nth-child(1).minimized):has(.pane:nth-child(2).minimized) {
+  grid-template-columns: 48px 48px 1fr;
+}
+
+.appContainer:has(.pane:nth-child(1).minimized):has(.pane:nth-child(3).minimized) {
+  grid-template-columns: 48px 1fr 48px;
+}
+
+.appContainer:has(.pane:nth-child(2).minimized):has(.pane:nth-child(3).minimized) {
+  grid-template-columns: 1fr 48px 48px;
+}
+
+.appContainer:has(.pane:nth-child(1).minimized):has(.pane:nth-child(2).minimized):has(.pane:nth-child(3).minimized) {
+  grid-template-columns: 48px 48px 48px;
+}
+
+.paneHeader {
+  height: 48px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.paneTitle {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.pane.minimized .paneTitle {
+  display: none;
+}
+
+.paneControls {
+  display: flex;
+  gap: 8px;
+}
+
+.minimizeBtn {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.minimizeBtn:hover {
+  background: var(--hover);
+}
+
+.paneContent {
+  flex: 1;
+  overflow-y: auto;
+  position: relative;
+}
+
+.pane.minimized .paneContent {
+  display: none;
+}
+
+.calendarWeeks {
+  padding: 16px;
+}
+
+.eventFrame {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.emptyState {
+  padding: 32px 16px;
+  text-align: center;
+  color: #999;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
