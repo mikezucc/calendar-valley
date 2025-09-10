@@ -1,6 +1,6 @@
 .appContainer {
   display: grid;
-  grid-template-columns: 400px 1fr 320px;
+  grid-template-columns: 50% 1fr 320px;
   height: 100vh;
   width: 100vw;
   transition: grid-template-columns 0.3s ease;
@@ -27,11 +27,11 @@
 }
 
 .appContainer:has(.pane:nth-child(2).minimized) {
-  grid-template-columns: 400px 48px 320px;
+  grid-template-columns: 50% 48px 320px;
 }
 
 .appContainer:has(.pane:nth-child(3).minimized) {
-  grid-template-columns: 400px 1fr 48px;
+  grid-template-columns: 50% 1fr 48px;
 }
 
 .appContainer:has(.pane:nth-child(1).minimized):has(.pane:nth-child(2).minimized) {
@@ -43,7 +43,7 @@
 }
 
 .appContainer:has(.pane:nth-child(2).minimized):has(.pane:nth-child(3).minimized) {
-  grid-template-columns: 1fr 48px 48px;
+  grid-template-columns: 50% 48px 48px;
 }
 
 .appContainer:has(.pane:nth-child(1).minimized):has(.pane:nth-child(2).minimized):has(.pane:nth-child(3).minimized) {
