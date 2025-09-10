@@ -41,15 +41,15 @@ export default function HomePage() {
 
   const selectEvent = (event: Event) => {
     setSelectedEvent(event)
-    
-    if (!bookmarks[event.url]) {
-      setTimeout(() => {
-        if (confirm(`Save "${event.title}" for later?`)) {
-          const newBookmarks = { ...bookmarks, [event.url]: event }
-          setBookmarks(newBookmarks)
-          localStorage.setItem('bookmarks', JSON.stringify(newBookmarks))
-        }
-      }, 500)
+  }
+
+  const toggleBookmark = (event: Event) => {
+    if (bookmarks[event.url]) {
+      removeBookmark(event.url)
+    } else {
+      const newBookmarks = { ...bookmarks, [event.url]: event }
+      setBookmarks(newBookmarks)
+      localStorage.setItem('bookmarks', JSON.stringify(newBookmarks))
     }
   }
 
@@ -149,8 +149,19 @@ export default function HomePage() {
 
       <div className={`${styles.pane} ${styles.eventPane} ${minimizedPanes.event ? styles.minimized : ''}`} id="event-pane">
         <div className={styles.paneHeader}>
-          <span className={styles.paneTitle}>Event Details</span>
+          <span className={styles.paneTitle}>
+            {selectedEvent ? selectedEvent.title : 'Event Details'}
+          </span>
           <div className={styles.paneControls}>
+            {selectedEvent && (
+              <button 
+                className={`${styles.bookmarkBtn} ${bookmarks[selectedEvent.url] ? styles.bookmarked : ''}`}
+                onClick={() => toggleBookmark(selectedEvent)}
+                title={bookmarks[selectedEvent.url] ? 'Remove from saved' : 'Save for later'}
+              >
+                {bookmarks[selectedEvent.url] ? '★' : '☆'}
+              </button>
+            )}
             <button className={styles.minimizeBtn} onClick={() => togglePane('event')}>
               {minimizedPanes.event ? '+' : '−'}
             </button>

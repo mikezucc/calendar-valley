@@ -68,6 +68,11 @@
   font-size: 14px;
   font-weight: 600;
   letter-spacing: -0.02em;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 8px;
 }
 
 .pane.minimized .paneTitle {
@@ -96,6 +101,33 @@
 
 .minimizeBtn:hover {
   background: var(--hover);
+}
+
+.bookmarkBtn {
+  width: 32px;
+  height: 24px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.bookmarkBtn:hover {
+  background: var(--hover);
+  transform: scale(1.1);
+}
+
+.bookmarkBtn.bookmarked {
+  color: var(--bookmark);
+  background: rgba(255, 107, 107, 0.1);
+  border-color: var(--bookmark);
 }
 
 .paneContent {
