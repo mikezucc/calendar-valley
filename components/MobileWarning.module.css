@@ -1,0 +1,125 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal {
+  background: white;
+  border-radius: 12px;
+  padding: 32px 24px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+  color: #111;
+  letter-spacing: -0.02em;
+}
+
+.message {
+  font-size: 15px;
+  line-height: 1.5;
+  color: #555;
+  margin: 0 0 12px 0;
+}
+
+.submessage {
+  font-size: 13px;
+  color: #888;
+  margin: 0 0 24px 0;
+}
+
+.dismissButton {
+  background: #111;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  max-width: 200px;
+}
+
+.dismissButton:hover {
+  background: #000;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.dismissButton:active {
+  transform: translateY(0);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .modal {
+    background: #1a1a1a;
+    color: #fff;
+  }
+
+  .title {
+    color: #fff;
+  }
+
+  .message {
+    color: #ccc;
+  }
+
+  .submessage {
+    color: #888;
+  }
+
+  .dismissButton {
+    background: #fff;
+    color: #000;
+  }
+
+  .dismissButton:hover {
+    background: #f0f0f0;
+  }
+}

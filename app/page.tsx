@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import CalendarWeek from '@/components/CalendarWeek'
 import BookmarksList from '@/components/BookmarksList'
 import EventPreview from '@/components/EventPreview'
+import MobileWarning from '@/components/MobileWarning'
 import { parseCSV, getWeekNumber, getWeekStart, Event } from '@/lib/csvParser'
 import { prioritizeEvents } from '@/lib/opengraphQueue'
 import styles from './page.module.css'
@@ -210,8 +211,10 @@ export default function HomePage() {
   const currentWeekNum = getWeekNumber(today)
 
   return (
-    <div className={styles.appContainer}>
-      <div className={`${styles.pane} ${minimizedPanes.calendar ? styles.minimized : ''}`} id="calendar-pane">
+    <>
+      <MobileWarning />
+      <div className={styles.appContainer}>
+        <div className={`${styles.pane} ${minimizedPanes.calendar ? styles.minimized : ''}`} id="calendar-pane">
         <div className={styles.paneHeader}>
           <span className={styles.paneTitle}>2025 AI Events</span>
           <div className={styles.paneControls}>
@@ -333,6 +336,7 @@ export default function HomePage() {
           )}
         </div>
       )}
-    </div>
+      </div>
+    </>
   )
 }
