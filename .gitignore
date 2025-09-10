@@ -1,5 +1,3 @@
-*.csv
-
 # dependencies
 /node_modules
 /.pnp
