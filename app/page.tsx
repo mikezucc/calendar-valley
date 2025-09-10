@@ -119,6 +119,8 @@ export default function HomePage() {
 
   const selectEvent = (event: Event) => {
     setSelectedEvent(event)
+    // Auto-expand event pane when selecting an event
+    setMinimizedPanes(prev => ({ ...prev, event: false }))
   }
 
   const toggleBookmark = (event: Event) => {
@@ -295,13 +297,15 @@ export default function HomePage() {
               {selectedEvent.title}
             </span>
             <div className={styles.paneControls}>
-              <button 
-                className={`${styles.bookmarkBtn} ${bookmarks[selectedEvent.url] ? styles.bookmarked : ''}`}
-                onClick={() => toggleBookmark(selectedEvent)}
-                title={bookmarks[selectedEvent.url] ? 'Remove from saved' : 'Save for later'}
-              >
-                {bookmarks[selectedEvent.url] ? 'Bookmarked' : 'Bookmark'}
-              </button>
+              {!minimizedPanes.event && (
+                <button 
+                  className={`${styles.bookmarkBtn} ${bookmarks[selectedEvent.url] ? styles.bookmarked : ''}`}
+                  onClick={() => toggleBookmark(selectedEvent)}
+                  title={bookmarks[selectedEvent.url] ? 'Remove from saved' : 'Save for later'}
+                >
+                  {bookmarks[selectedEvent.url] ? 'Bookmarked' : 'Bookmark'}
+                </button>
+              )}
               <button className={styles.minimizeBtn} onClick={() => togglePane('event')}>
                 {minimizedPanes.event ? '+' : '−'}
               </button>
