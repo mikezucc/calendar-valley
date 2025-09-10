@@ -46,29 +46,32 @@ export default function EventPreview({ event }: EventPreviewProps) {
     setLoading(true)
     setError(null)
     
+    // Since we can't fetch directly due to CORS, we'll use the basic event data
+    // and try to fetch via an API route if available
+    const basicOgData = {
+      title: event?.title,
+      description: `${event?.dateStr} • ${event?.time} • ${event?.location}`,
+      url: event?.url
+    }
+    
     try {
-      // Using a CORS proxy service - you may want to use your own proxy
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`
-      const response = await fetch(proxyUrl)
-      const data = await response.json()
+      // Try to fetch from an API route that can handle CORS
+      const response = await fetch(`/api/opengraph?url=${encodeURIComponent(url)}`)
       
-      if (data.contents) {
-        const html = data.contents
-        const ogData = parseOpenGraphTags(html)
+      if (response.ok) {
+        const ogData = await response.json()
         
         // Cache the result
         sessionStorage.setItem(cacheKey, JSON.stringify(ogData))
         setOgData(ogData)
+      } else {
+        // Use basic data if API fails
+        setOgData(basicOgData)
       }
     } catch (err) {
       console.error('Error fetching OpenGraph data:', err)
-      setError('Unable to load preview')
       // Fallback to basic event data
-      setOgData({
-        title: event?.title,
-        description: `${event?.dateStr} • ${event?.time} • ${event?.location}`,
-        url: event?.url
-      })
+      setOgData(basicOgData)
     } finally {
       setLoading(false)
     }
