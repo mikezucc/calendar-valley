@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendar Valley - 2025 AI Events</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #ffffff;
+            --text: #000000;
+            --border: #e0e0e0;
+            --hover: #f5f5f5;
+            --accent: #333333;
+            --bookmark: #ff6b6b;
+            --week-header: #f8f8f8;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow: hidden;
+        }
+
+        .app-container {
+            display: grid;
+            grid-template-columns: 400px 1fr 320px;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .pane {
+            position: relative;
+            overflow: hidden;
+            border-right: 1px solid var(--border);
+        }
+
+        .pane:last-child {
+            border-right: none;
+        }
+
+        .pane-header {
+            height: 48px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            background: var(--bg);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .pane-title {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        .pane-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .minimize-btn {
+            width: 24px;
+            height: 24px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .minimize-btn:hover {
+            background: var(--hover);
+        }
+
+        .pane-content {
+            height: calc(100% - 48px);
+            overflow-y: auto;
+        }
+
+        .pane.minimized {
+            width: 48px !important;
+        }
+
+        .pane.minimized .pane-content,
+        .pane.minimized .pane-title {
+            display: none;
+        }
+
+        .month-nav {
+            position: sticky;
+            top: 48px;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
+            z-index: 5;
+        }
+
+        .month-selector {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 4px;
+            font-size: 11px;
+        }
+
+        .month-btn {
+            padding: 4px 8px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .month-btn:hover {
+            background: var(--hover);
+        }
+
+        .month-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .calendar-weeks {
+            padding: 16px;
+        }
+
+        .week-container {
+            margin-bottom: 32px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .week-header {
+            padding: 8px 12px;
+            background: var(--week-header);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .week-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+        }
+
+        .day-container {
+            min-height: 100px;
+            border-right: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            padding: 8px;
+        }
+
+        .day-container:nth-child(7n) {
+            border-right: none;
+        }
+
+        .day-container:nth-last-child(-n+7) {
+            border-bottom: none;
+        }
+
+        .day-header {
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--accent);
+        }
+
+        .day-events {
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .event-item {
+            padding: 4px;
+            margin: 2px 0;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: background 0.2s;
+            position: relative;
+        }
+
+        .event-item:hover {
+            background: var(--hover);
+        }
+
+        .event-item.bookmarked {
+            background: rgba(255, 107, 107, 0.1);
+            border-left: 2px solid var(--bookmark);
+            padding-left: 6px;
+        }
+
+        .event-time {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .event-title {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .event-location {
+            color: #666;
+            font-size: 10px;
+            margin-top: 2px;
+        }
+
+        #event-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .bookmarks-list {
+            padding: 16px;
+        }
+
+        .bookmark-item {
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .bookmark-item:hover {
+            background: var(--hover);
+            transform: translateX(-2px);
+        }
+
+        .bookmark-remove {
+            position: absolute;
+            right: 8px;
+            top: 8px;
+            width: 20px;
+            height: 20px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            border-radius: 2px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .bookmark-remove:hover {
+            background: var(--bookmark);
+            color: white;
+        }
+
+        .bookmark-title {
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 4px;
+            padding-right: 24px;
+        }
+
+        .bookmark-meta {
+            font-size: 11px;
+            color: #666;
+        }
+
+        .empty-state {
+            padding: 32px 16px;
+            text-align: center;
+            color: #999;
+            font-size: 13px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="pane" id="calendar-pane">
+            <div class="pane-header">
+                <span class="pane-title">2025 AI Events</span>
+                <div class="pane-controls">
+                    <button class="minimize-btn" onclick="togglePane('calendar-pane')">−</button>
+                </div>
+            </div>
+            <div class="month-nav">
+                <div class="month-selector" id="month-selector"></div>
+            </div>
+            <div class="pane-content">
+                <div class="calendar-weeks" id="calendar-weeks"></div>
+            </div>
+        </div>
+
+        <div class="pane" id="event-pane">
+            <div class="pane-header">
+                <span class="pane-title">Event Details</span>
+                <div class="pane-controls">
+                    <button class="minimize-btn" onclick="togglePane('event-pane')">−</button>
+                </div>
+            </div>
+            <div class="pane-content">
+                <iframe id="event-frame" src="about:blank"></iframe>
+            </div>
+        </div>
+
+        <div class="pane" id="bookmarks-pane">
+            <div class="pane-header">
+                <span class="pane-title">Saved Events</span>
+                <div class="pane-controls">
+                    <button class="minimize-btn" onclick="togglePane('bookmarks-pane')">−</button>
+                </div>
+            </div>
+            <div class="pane-content">
+                <div class="bookmarks-list" id="bookmarks-list">
+                    <div class="empty-state">No saved events yet</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let events = [];
+        let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '{}');
+        let openGraphCache = {};
+
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                       'July', 'August', 'September', 'October', 'November', 'December'];
+
+        async function loadCSV() {
+            try {
+                const response = await fetch('Generative AI Events [by cerebralvalley.ai] - 2025 Events.csv');
+                const text = await response.text();
+                parseCSV(text);
+                renderCalendar();
+                renderMonthNav();
+                renderBookmarks();
+            } catch (error) {
+                console.error('Error loading CSV:', error);
+            }
+        }
+
+        function parseCSV(text) {
+            const lines = text.split('\n');
+            const headers = lines[5].split(',');
+            
+            let currentMonth = '';
+            
+            for (let i = 6; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                const parts = parseCSVLine(line);
+                if (parts.length < 6) continue;
+                
+                if (parts[0]) {
+                    currentMonth = parts[0];
+                }
+                
+                if (parts[1] && parts[2]) {
+                    events.push({
+                        month: currentMonth,
+                        title: parts[1].trim(),
+                        dateStr: parts[2].trim(),
+                        time: parts[3].trim(),
+                        location: parts[4].trim(),
+                        url: parts[5].trim()
+                    });
+                }
+            }
+            
+            events = events.map(event => ({
+                ...event,
+                date: parseEventDate(event.dateStr, event.month)
+            })).filter(e => e.date && e.date.getFullYear() === 2025);
+            
+            events.sort((a, b) => a.date - b.date);
+        }
+
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current);
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            
+            result.push(current);
+            return result;
+        }
+
+        function parseEventDate(dateStr, month) {
+            const year = 2025;
+            const monthIndex = months.findIndex(m => m.toLowerCase() === month.toLowerCase());
+            
+            if (monthIndex === -1) return null;
+            
+            const dateMatch = dateStr.match(/(\d+)/);
+            if (!dateMatch) return null;
+            
+            const day = parseInt(dateMatch[1]);
+            return new Date(year, monthIndex, day);
+        }
+
+        function getWeekNumber(date) {
+            const firstDay = new Date(date.getFullYear(), 0, 1);
+            const days = Math.floor((date - firstDay) / (24 * 60 * 60 * 1000));
+            return Math.ceil((days + firstDay.getDay() + 1) / 7);
+        }
+
+        function getWeekStart(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day;
+            return new Date(d.setDate(diff));
+        }
+
+        function renderCalendar() {
+            const container = document.getElementById('calendar-weeks');
+            container.innerHTML = '';
+            
+            const weeks = {};
+            
+            events.forEach(event => {
+                const weekNum = getWeekNumber(event.date);
+                if (!weeks[weekNum]) {
+                    weeks[weekNum] = {
+                        start: getWeekStart(event.date),
+                        events: []
+                    };
+                }
+                weeks[weekNum].events.push(event);
+            });
+            
+            for (let weekNum = 1; weekNum <= 52; weekNum++) {
+                const weekData = weeks[weekNum] || {
+                    start: new Date(2025, 0, (weekNum - 1) * 7 + 1),
+                    events: []
+                };
+                
+                const weekEl = createWeekElement(weekNum, weekData);
+                container.appendChild(weekEl);
+            }
+        }
+
+        function createWeekElement(weekNum, weekData) {
+            const weekEl = document.createElement('div');
+            weekEl.className = 'week-container';
+            weekEl.id = `week-${weekNum}`;
+            
+            const headerEl = document.createElement('div');
+            headerEl.className = 'week-header';
+            const weekStart = weekData.start;
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekEnd.getDate() + 6);
+            
+            headerEl.textContent = `Week ${weekNum} - ${formatDateRange(weekStart, weekEnd)}`;
+            weekEl.appendChild(headerEl);
+            
+            const daysEl = document.createElement('div');
+            daysEl.className = 'week-days';
+            
+            for (let i = 0; i < 7; i++) {
+                const dayDate = new Date(weekStart);
+                dayDate.setDate(dayDate.getDate() + i);
+                
+                const dayEvents = weekData.events.filter(e => 
+                    e.date.toDateString() === dayDate.toDateString()
+                );
+                
+                const dayEl = createDayElement(dayDate, dayEvents);
+                daysEl.appendChild(dayEl);
+            }
+            
+            weekEl.appendChild(daysEl);
+            return weekEl;
+        }
+
+        function createDayElement(date, dayEvents) {
+            const dayEl = document.createElement('div');
+            dayEl.className = 'day-container';
+            
+            const headerEl = document.createElement('div');
+            headerEl.className = 'day-header';
+            headerEl.textContent = `${date.toLocaleDateString('en-US', { weekday: 'short' })} ${date.getDate()}`;
+            dayEl.appendChild(headerEl);
+            
+            const eventsEl = document.createElement('div');
+            eventsEl.className = 'day-events';
+            
+            dayEvents.forEach(event => {
+                const eventEl = document.createElement('div');
+                eventEl.className = 'event-item';
+                if (bookmarks[event.url]) {
+                    eventEl.classList.add('bookmarked');
+                }
+                
+                const timeEl = document.createElement('span');
+                timeEl.className = 'event-time';
+                timeEl.textContent = event.time || 'All day';
+                
+                const titleEl = document.createElement('span');
+                titleEl.className = 'event-title';
+                titleEl.textContent = event.title;
+                
+                const locationEl = document.createElement('div');
+                locationEl.className = 'event-location';
+                locationEl.textContent = event.location;
+                
+                eventEl.appendChild(timeEl);
+                eventEl.appendChild(titleEl);
+                eventEl.appendChild(locationEl);
+                
+                eventEl.onclick = () => selectEvent(event);
+                
+                eventsEl.appendChild(eventEl);
+            });
+            
+            dayEl.appendChild(eventsEl);
+            return dayEl;
+        }
+
+        function formatDateRange(start, end) {
+            const startMonth = start.toLocaleDateString('en-US', { month: 'short' });
+            const endMonth = end.toLocaleDateString('en-US', { month: 'short' });
+            
+            if (startMonth === endMonth) {
+                return `${startMonth} ${start.getDate()}-${end.getDate()}`;
+            } else {
+                return `${startMonth} ${start.getDate()} - ${endMonth} ${end.getDate()}`;
+            }
+        }
+
+        function selectEvent(event) {
+            document.getElementById('event-frame').src = event.url;
+            
+            if (!bookmarks[event.url]) {
+                setTimeout(() => {
+                    if (confirm(`Save "${event.title}" for later?`)) {
+                        bookmarks[event.url] = event;
+                        localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+                        renderCalendar();
+                        renderBookmarks();
+                    }
+                }, 500);
+            }
+        }
+
+        function renderMonthNav() {
+            const container = document.getElementById('month-selector');
+            
+            months.forEach((month, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'month-btn';
+                btn.textContent = month.slice(0, 3);
+                btn.onclick = () => scrollToMonth(index);
+                container.appendChild(btn);
+            });
+        }
+
+        function scrollToMonth(monthIndex) {
+            const targetDate = new Date(2025, monthIndex, 1);
+            const weekNum = getWeekNumber(targetDate);
+            const weekEl = document.getElementById(`week-${weekNum}`);
+            
+            if (weekEl) {
+                weekEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                
+                document.querySelectorAll('.month-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.querySelectorAll('.month-btn')[monthIndex].classList.add('active');
+            }
+        }
+
+        function renderBookmarks() {
+            const container = document.getElementById('bookmarks-list');
+            const bookmarksList = Object.values(bookmarks);
+            
+            if (bookmarksList.length === 0) {
+                container.innerHTML = '<div class="empty-state">No saved events yet</div>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            bookmarksList.forEach(event => {
+                const bookmarkEl = document.createElement('div');
+                bookmarkEl.className = 'bookmark-item';
+                
+                const titleEl = document.createElement('div');
+                titleEl.className = 'bookmark-title';
+                titleEl.textContent = event.title;
+                
+                const metaEl = document.createElement('div');
+                metaEl.className = 'bookmark-meta';
+                metaEl.textContent = `${event.dateStr} • ${event.location}`;
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'bookmark-remove';
+                removeBtn.textContent = '×';
+                removeBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    removeBookmark(event.url);
+                };
+                
+                bookmarkEl.appendChild(titleEl);
+                bookmarkEl.appendChild(metaEl);
+                bookmarkEl.appendChild(removeBtn);
+                
+                bookmarkEl.onclick = () => selectEvent(event);
+                
+                container.appendChild(bookmarkEl);
+            });
+        }
+
+        function removeBookmark(url) {
+            delete bookmarks[url];
+            localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+            renderCalendar();
+            renderBookmarks();
+        }
+
+        function togglePane(paneId) {
+            const pane = document.getElementById(paneId);
+            pane.classList.toggle('minimized');
+            
+            const container = document.querySelector('.app-container');
+            const panes = document.querySelectorAll('.pane');
+            
+            let gridColumns = [];
+            panes.forEach(p => {
+                if (p.classList.contains('minimized')) {
+                    gridColumns.push('48px');
+                } else if (p.id === 'calendar-pane') {
+                    gridColumns.push('400px');
+                } else if (p.id === 'bookmarks-pane') {
+                    gridColumns.push('320px');
+                } else {
+                    gridColumns.push('1fr');
+                }
+            });
+            
+            container.style.gridTemplateColumns = gridColumns.join(' ');
+        }
+
+        loadCSV();
+    </script>
+</body>
+</html>
