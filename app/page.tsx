@@ -69,8 +69,7 @@ export default function HomePage() {
     localStorage.setItem('bookmarks', JSON.stringify(newBookmarks))
   }
 
-  const scrollToMonth = (monthIndex: number) => {
-    const targetDate = new Date(2025, monthIndex, 1)
+  const scrollToDate = (targetDate: Date) => {
     const weekNum = getWeekNumber(targetDate)
     const weekEl = document.getElementById(`week-${weekNum}`)
     
@@ -78,10 +77,10 @@ export default function HomePage() {
       // Scroll the week into view
       weekEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
       
-      // Also scroll the week's day container to show the first of the month
+      // Also scroll the week's day container to show the target date
       const weekDaysContainer = weekEl.querySelector('.weekDays') as HTMLElement
       if (weekDaysContainer) {
-        // Find which day of the week the month starts
+        // Find which day of the week the date is
         const dayOfWeek = targetDate.getDay()
         const dayElements = weekDaysContainer.children
         if (dayElements[dayOfWeek]) {
@@ -90,9 +89,29 @@ export default function HomePage() {
         }
       }
     }
-    
+  }
+
+  const scrollToMonth = (monthIndex: number) => {
+    const targetDate = new Date(2025, monthIndex, 1)
+    scrollToDate(targetDate)
     setActiveMonth(monthIndex)
     setShowMonthDropdown(false)
+  }
+
+  const scrollToToday = () => {
+    const today = new Date()
+    // Check if today is in 2025
+    if (today.getFullYear() === 2025) {
+      scrollToDate(today)
+      setActiveMonth(today.getMonth())
+    } else {
+      // If not in 2025, go to closest date (Jan 1 or Dec 31)
+      const targetDate = today.getFullYear() < 2025 
+        ? new Date(2025, 0, 1)  // Jan 1, 2025
+        : new Date(2025, 11, 31) // Dec 31, 2025
+      scrollToDate(targetDate)
+      setActiveMonth(targetDate.getMonth())
+    }
   }
 
   const togglePane = (pane: 'calendar' | 'event' | 'bookmarks') => {
@@ -124,6 +143,13 @@ export default function HomePage() {
         <div className={styles.paneHeader}>
           <span className={styles.paneTitle}>2025 AI Events</span>
           <div className={styles.paneControls}>
+            <button 
+              className={styles.todayBtn}
+              onClick={scrollToToday}
+              title="Jump to today"
+            >
+              Today
+            </button>
             <div className={styles.monthDropdown}>
               <button 
                 className={styles.dropdownBtn}

@@ -89,6 +89,25 @@
   position: relative;
 }
 
+.todayBtn {
+  padding: 4px 12px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: white;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.todayBtn:hover {
+  background: #000;
+  border-color: #000;
+  transform: translateY(-1px);
+}
+
 .dropdownBtn {
   padding: 4px 12px;
   border: 1px solid var(--border);

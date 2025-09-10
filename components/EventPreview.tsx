@@ -18,9 +18,13 @@ export default function EventPreview({ event }: EventPreviewProps) {
   const [ogData, setOgData] = useState<OpenGraphData | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [imageLoaded, setImageLoaded] = useState(false)
+  const [imageError, setImageError] = useState(false)
 
   useEffect(() => {
     if (event?.url) {
+      setImageLoaded(false)
+      setImageError(false)
       fetchOpenGraphData(event.url)
     }
   }, [event])
@@ -126,22 +130,18 @@ export default function EventPreview({ event }: EventPreviewProps) {
       
       {!loading && (
         <div className={styles.previewContent}>
-          {(ogData?.image || error) && (
-            <div className={styles.imageContainer}>
-              {ogData?.image && !error ? (
-                <img 
-                  src={ogData.image} 
-                  alt={ogData.title || event.title}
-                  className={styles.previewImage}
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none'
-                  }}
-                />
-              ) : (
-                <div className={styles.imagePlaceholder}>
-                  <div className={styles.placeholderIcon}>🖼️</div>
-                </div>
-              )}
+          {ogData?.image && !imageError && (
+            <div className={styles.imageContainer} style={{ display: imageLoaded ? 'block' : 'none' }}>
+              <img 
+                src={ogData.image} 
+                alt={ogData.title || event.title}
+                className={styles.previewImage}
+                onLoad={() => setImageLoaded(true)}
+                onError={() => {
+                  setImageError(true)
+                  setImageLoaded(false)
+                }}
+              />
             </div>
           )}
           
