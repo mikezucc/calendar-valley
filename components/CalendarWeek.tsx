@@ -34,15 +34,21 @@ export default function CalendarWeek({ weekNum, weekStart, events, bookmarks, on
       <div className={styles.weekHeader}>
         Week {weekNum} - {formatDateRange(weekStart, weekEnd)}
       </div>
-      <div className={styles.weekDays}>
+      <div className={`${styles.weekDays} weekDays`}>
         {[...Array(7)].map((_, i) => {
           const dayDate = new Date(weekStart)
           dayDate.setDate(dayDate.getDate() + i)
           const dayEvents = getDayEvents(dayDate)
+          const isFirstOfMonth = dayDate.getDate() === 1
           
           return (
-            <div key={i} className={styles.dayContainer}>
+            <div key={i} className={`${styles.dayContainer} ${isFirstOfMonth ? styles.monthStart : ''}`}>
               <div className={styles.dayHeader}>
+                {isFirstOfMonth && (
+                  <span className={styles.monthLabel}>
+                    {dayDate.toLocaleDateString('en-US', { month: 'long' })}
+                  </span>
+                )}
                 {dayDate.toLocaleDateString('en-US', { weekday: 'short' })} {dayDate.getDate()}
               </div>
               <div className={styles.dayEvents}>

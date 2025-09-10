@@ -65,11 +65,20 @@ export default function HomePage() {
     const weekNum = getWeekNumber(targetDate)
     const weekEl = document.getElementById(`week-${weekNum}`)
     
-    if (weekEl && calendarRef.current) {
-      const container = calendarRef.current.closest('.pane-content')
-      if (container) {
-        const top = weekEl.offsetTop - container.scrollTop - 100
-        container.scrollTo({ top, behavior: 'smooth' })
+    if (weekEl) {
+      // Scroll the week into view
+      weekEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      
+      // Also scroll the week's day container to show the first of the month
+      const weekDaysContainer = weekEl.querySelector('.weekDays') as HTMLElement
+      if (weekDaysContainer) {
+        // Find which day of the week the month starts
+        const dayOfWeek = targetDate.getDay()
+        const dayElements = weekDaysContainer.children
+        if (dayElements[dayOfWeek]) {
+          const dayEl = dayElements[dayOfWeek] as HTMLElement
+          weekDaysContainer.scrollLeft = dayEl.offsetLeft
+        }
       }
     }
     

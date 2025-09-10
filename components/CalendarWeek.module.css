@@ -55,6 +55,21 @@
   font-weight: 600;
   margin-bottom: 4px;
   color: var(--accent);
+  position: relative;
+}
+
+.monthLabel {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--bookmark);
+  margin-bottom: 2px;
+  letter-spacing: 0.05em;
+}
+
+.monthStart {
+  background: linear-gradient(to right, rgba(255, 107, 107, 0.05) 0%, transparent 100%);
+  border-left: 3px solid var(--bookmark);
 }
 
 .dayEvents {
