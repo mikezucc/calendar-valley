@@ -46,11 +46,18 @@ export function parseEventDate(dateStr: string, month: string): Date | null {
   return new Date(year, monthIndex, day)
 }
 
-export function parseCSV(text: string): Event[] {
+export function parseCSV(text: string, filterPastEvents: boolean = false): Event[] {
   const lines = text.split('\n')
   const events: Event[] = []
   
   let currentMonth = ''
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  
+  // Get start of current week (Sunday)
+  const currentWeekStart = new Date(today)
+  currentWeekStart.setDate(today.getDate() - today.getDay())
+  currentWeekStart.setHours(0, 0, 0, 0)
   
   for (let i = 6; i < lines.length; i++) {
     const line = lines[i].trim()
@@ -66,6 +73,11 @@ export function parseCSV(text: string): Event[] {
     if (parts[1] && parts[2]) {
       const date = parseEventDate(parts[2].trim(), currentMonth)
       if (date && date.getFullYear() === 2025) {
+        // Filter out past events if requested
+        if (filterPastEvents && date < currentWeekStart) {
+          continue
+        }
+        
         events.push({
           month: currentMonth,
           title: parts[1].trim(),

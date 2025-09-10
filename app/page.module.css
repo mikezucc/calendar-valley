@@ -1,9 +1,8 @@
 .appContainer {
-  display: grid;
-  grid-template-columns: 50% 1fr 320px;
+  display: flex;
   height: 100vh;
   width: 100vw;
-  transition: grid-template-columns 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .pane {
@@ -12,6 +11,9 @@
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  transition: all 0.3s ease;
 }
 
 .pane:last-child {
@@ -19,35 +21,45 @@
 }
 
 .pane.minimized {
-  width: 48px !important;
+  flex: 0 0 48px;
+  min-width: 48px;
+  max-width: 48px;
 }
 
-.appContainer:has(.pane:nth-child(1).minimized) {
-  grid-template-columns: 48px 1fr 320px;
+/* When calendar is the only visible pane */
+.appContainer:has(#calendar-pane):not(:has(#event-pane)):not(:has(#bookmarks-pane)) #calendar-pane {
+  flex: 1 1 100%;
 }
 
-.appContainer:has(.pane:nth-child(2).minimized) {
-  grid-template-columns: 50% 48px 320px;
+/* When calendar and event panes are visible */
+.appContainer:has(#calendar-pane):has(#event-pane):not(:has(#bookmarks-pane)) #calendar-pane {
+  flex: 0 0 50%;
 }
 
-.appContainer:has(.pane:nth-child(3).minimized) {
-  grid-template-columns: 50% 1fr 48px;
+.appContainer:has(#calendar-pane):has(#event-pane):not(:has(#bookmarks-pane)) #event-pane {
+  flex: 1;
 }
 
-.appContainer:has(.pane:nth-child(1).minimized):has(.pane:nth-child(2).minimized) {
-  grid-template-columns: 48px 48px 1fr;
+/* When all three panes are visible */
+.appContainer:has(#calendar-pane):has(#event-pane):has(#bookmarks-pane) #calendar-pane {
+  flex: 0 0 50%;
 }
 
-.appContainer:has(.pane:nth-child(1).minimized):has(.pane:nth-child(3).minimized) {
-  grid-template-columns: 48px 1fr 48px;
+.appContainer:has(#calendar-pane):has(#event-pane):has(#bookmarks-pane) #event-pane {
+  flex: 1;
 }
 
-.appContainer:has(.pane:nth-child(2).minimized):has(.pane:nth-child(3).minimized) {
-  grid-template-columns: 50% 48px 48px;
+.appContainer:has(#calendar-pane):has(#event-pane):has(#bookmarks-pane) #bookmarks-pane {
+  flex: 0 0 320px;
 }
 
-.appContainer:has(.pane:nth-child(1).minimized):has(.pane:nth-child(2).minimized):has(.pane:nth-child(3).minimized) {
-  grid-template-columns: 48px 48px 48px;
+/* When calendar and bookmarks are visible (no event selected) */
+.appContainer:has(#calendar-pane):not(:has(#event-pane)):has(#bookmarks-pane) #calendar-pane {
+  flex: 1;
+}
+
+.appContainer:has(#calendar-pane):not(:has(#event-pane)):has(#bookmarks-pane) #bookmarks-pane {
+  flex: 0 0 320px;
 }
 
 .paneHeader {
@@ -184,7 +196,7 @@
 }
 
 .bookmarkBtn {
-  width: 32px;
+  padding: 4px 12px;
   height: 24px;
   border: 1px solid var(--border);
   background: var(--bg);
@@ -194,20 +206,23 @@
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
-  font-size: 16px;
+  font-size: 12px;
+  font-weight: 500;
   line-height: 1;
-  color: var(--accent);
+  color: var(--text);
+  white-space: nowrap;
 }
 
 .bookmarkBtn:hover {
   background: var(--hover);
-  transform: scale(1.1);
+  border-color: var(--accent);
 }
 
 .bookmarkBtn.bookmarked {
-  color: var(--bookmark);
-  background: rgba(255, 107, 107, 0.1);
-  border-color: var(--bookmark);
+  color: white;
+  background: var(--accent);
+  border-color: var(--accent);
+  font-weight: 600;
 }
 
 .paneContent {

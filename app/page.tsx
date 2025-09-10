@@ -20,6 +20,7 @@ export default function HomePage() {
     bookmarks: false
   })
   const calendarRef = useRef<HTMLDivElement>(null)
+  const loadedWeeks = useRef<Set<number>>(new Set())
 
   useEffect(() => {
     loadCSV()
@@ -38,23 +39,81 @@ export default function HomePage() {
     }
   }, [])
 
+  // Handle scroll events with debouncing
+  useEffect(() => {
+    if (events.length === 0) return
+    
+    let scrollTimeout: NodeJS.Timeout
+    
+    const handleScroll = () => {
+      clearTimeout(scrollTimeout)
+      scrollTimeout = setTimeout(() => {
+        loadVisibleWeeksData()
+      }, 150)
+    }
+    
+    const calendar = calendarRef.current
+    if (calendar) {
+      calendar.addEventListener('scroll', handleScroll, { passive: true })
+      return () => {
+        calendar.removeEventListener('scroll', handleScroll)
+        clearTimeout(scrollTimeout)
+      }
+    }
+  }, [events])
+
   const loadCSV = async () => {
     try {
       const response = await fetch('/events.csv')
       const text = await response.text()
-      const parsedEvents = parseCSV(text)
+      // Filter to only show current week and future events
+      const parsedEvents = parseCSV(text, true)
       setEvents(parsedEvents)
       
-      // Start fetching OpenGraph data with prioritization
-      prioritizeEvents(parsedEvents)
+      // Don't load all OpenGraph data at once
+      // Will be loaded based on viewport visibility
       
       // Scroll to today on first load
       setTimeout(() => {
         scrollToToday()
+        // Load OpenGraph data for initially visible weeks
+        loadVisibleWeeksData()
       }, 100)
     } catch (error) {
       console.error('Error loading CSV:', error)
     }
+  }
+
+  const loadVisibleWeeksData = () => {
+    if (!calendarRef.current || events.length === 0) return
+    
+    const container = calendarRef.current
+    const containerRect = container.getBoundingClientRect()
+    const weekElements = container.querySelectorAll('[id^="week-"]')
+    
+    // Group events by week for lookup
+    const eventsByWeek = groupEventsByWeek()
+    
+    weekElements.forEach((weekEl) => {
+      const weekRect = weekEl.getBoundingClientRect()
+      
+      // Check if week is visible in viewport
+      if (weekRect.bottom >= containerRect.top && weekRect.top <= containerRect.bottom) {
+        const weekNum = parseInt(weekEl.id.replace('week-', ''))
+        
+        // Only load data if we haven't already loaded this week
+        if (!loadedWeeks.current.has(weekNum)) {
+          loadedWeeks.current.add(weekNum)
+          
+          // Get events for this week and load their OpenGraph data
+          const weekEvents = eventsByWeek[weekNum]?.events || []
+          weekEvents.forEach((event, index) => {
+            // Add to queue with priority based on visibility order
+            prioritizeEvents([event])
+          })
+        }
+      }
+    })
   }
 
   const selectEvent = (event: Event) => {
@@ -145,6 +204,10 @@ export default function HomePage() {
   }
 
   const weeks = groupEventsByWeek()
+  
+  // Get current week number to filter out past weeks
+  const today = new Date()
+  const currentWeekNum = getWeekNumber(today)
 
   return (
     <div className={styles.appContainer}>
@@ -188,17 +251,28 @@ export default function HomePage() {
         </div>
         {!minimizedPanes.calendar && (
           <div className={styles.paneContent}>
-              <div className={styles.calendarWeeks} ref={calendarRef}>
-                {[...Array(52)].map((_, weekNum) => {
-                  const week = weeks[weekNum + 1] || {
-                    start: new Date(2025, 0, weekNum * 7 + 1),
+              <div 
+                className={styles.calendarWeeks} 
+                ref={calendarRef}
+                onScroll={loadVisibleWeeksData}
+              >
+                {[...Array(52)].map((_, index) => {
+                  const weekNum = index + 1
+                  
+                  // Skip past weeks
+                  if (weekNum < currentWeekNum) {
+                    return null
+                  }
+                  
+                  const week = weeks[weekNum] || {
+                    start: new Date(2025, 0, (weekNum - 1) * 7 + 1),
                     events: []
                   }
                   
                   return (
                     <CalendarWeek
-                      key={weekNum + 1}
-                      weekNum={weekNum + 1}
+                      key={weekNum}
+                      weekNum={weekNum}
                       weekStart={week.start}
                       events={week.events}
                       bookmarks={bookmarks}
@@ -211,52 +285,54 @@ export default function HomePage() {
         )}
       </div>
 
-      <div className={`${styles.pane} ${styles.eventPane} ${minimizedPanes.event ? styles.minimized : ''}`} id="event-pane">
-        <div className={styles.paneHeader}>
-          <span className={styles.paneTitle}>
-            {selectedEvent ? selectedEvent.title : 'Event Details'}
-          </span>
-          <div className={styles.paneControls}>
-            {selectedEvent && (
+      {selectedEvent && (
+        <div className={`${styles.pane} ${styles.eventPane} ${minimizedPanes.event ? styles.minimized : ''}`} id="event-pane">
+          <div className={styles.paneHeader}>
+            <span className={styles.paneTitle}>
+              {selectedEvent.title}
+            </span>
+            <div className={styles.paneControls}>
               <button 
                 className={`${styles.bookmarkBtn} ${bookmarks[selectedEvent.url] ? styles.bookmarked : ''}`}
                 onClick={() => toggleBookmark(selectedEvent)}
                 title={bookmarks[selectedEvent.url] ? 'Remove from saved' : 'Save for later'}
               >
-                {bookmarks[selectedEvent.url] ? '★' : '☆'}
+                {bookmarks[selectedEvent.url] ? 'Bookmarked' : 'Bookmark'}
               </button>
-            )}
-            <button className={styles.minimizeBtn} onClick={() => togglePane('event')}>
-              {minimizedPanes.event ? '+' : '−'}
-            </button>
+              <button className={styles.minimizeBtn} onClick={() => togglePane('event')}>
+                {minimizedPanes.event ? '+' : '−'}
+              </button>
+            </div>
           </div>
+          {!minimizedPanes.event && (
+            <div className={styles.paneContent}>
+              <EventPreview event={selectedEvent} />
+            </div>
+          )}
         </div>
-        {!minimizedPanes.event && (
-          <div className={styles.paneContent}>
-            <EventPreview event={selectedEvent} />
-          </div>
-        )}
-      </div>
+      )}
 
-      <div className={`${styles.pane} ${minimizedPanes.bookmarks ? styles.minimized : ''}`} id="bookmarks-pane">
-        <div className={styles.paneHeader}>
-          <span className={styles.paneTitle}>Saved Events</span>
-          <div className={styles.paneControls}>
-            <button className={styles.minimizeBtn} onClick={() => togglePane('bookmarks')}>
-              {minimizedPanes.bookmarks ? '+' : '−'}
-            </button>
+      {Object.keys(bookmarks).length > 0 && (
+        <div className={`${styles.pane} ${minimizedPanes.bookmarks ? styles.minimized : ''}`} id="bookmarks-pane">
+          <div className={styles.paneHeader}>
+            <span className={styles.paneTitle}>Saved Events</span>
+            <div className={styles.paneControls}>
+              <button className={styles.minimizeBtn} onClick={() => togglePane('bookmarks')}>
+                {minimizedPanes.bookmarks ? '+' : '−'}
+              </button>
+            </div>
           </div>
+          {!minimizedPanes.bookmarks && (
+            <div className={styles.paneContent}>
+              <BookmarksList 
+                bookmarks={bookmarks}
+                onEventClick={selectEvent}
+                onRemoveBookmark={removeBookmark}
+              />
+            </div>
+          )}
         </div>
-        {!minimizedPanes.bookmarks && (
-          <div className={styles.paneContent}>
-            <BookmarksList 
-              bookmarks={bookmarks}
-              onEventClick={selectEvent}
-              onRemoveBookmark={removeBookmark}
-            />
-          </div>
-        )}
-      </div>
+      )}
     </div>
   )
 }
