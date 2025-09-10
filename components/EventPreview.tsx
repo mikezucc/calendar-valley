@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Event } from '@/lib/csvParser'
+import { ogQueue } from '@/lib/opengraphQueue'
 import styles from './EventPreview.module.css'
 
 interface EventPreviewProps {
@@ -25,90 +26,44 @@ export default function EventPreview({ event }: EventPreviewProps) {
     if (event?.url) {
       setImageLoaded(false)
       setImageError(false)
-      fetchOpenGraphData(event.url)
+      setLoading(true)
+      setError(null)
+      
+      // Check if data is already cached
+      const cached = ogQueue.getCached(event.url)
+      if (cached) {
+        setOgData(cached)
+        setLoading(false)
+      } else {
+        // Subscribe to updates from the queue
+        const handleData = (data: OpenGraphData | null) => {
+          if (data) {
+            setOgData(data)
+          } else {
+            // Fallback to basic data
+            setOgData({
+              title: event.title,
+              description: `${event.dateStr} • ${event.time} • ${event.location}`,
+              url: event.url
+            })
+            setError('Failed to load preview')
+          }
+          setLoading(false)
+        }
+        
+        ogQueue.subscribe(event.url, handleData)
+        
+        // Add to queue with high priority since user selected it
+        ogQueue.addToQueue(event.url, 1000)
+        
+        // Cleanup subscription
+        return () => {
+          ogQueue.unsubscribe(event.url, handleData)
+        }
+      }
     }
   }, [event])
 
-  const fetchOpenGraphData = async (url: string) => {
-    // Check cache first
-    const cacheKey = `og_${url}`
-    const cached = sessionStorage.getItem(cacheKey)
-    
-    if (cached) {
-      try {
-        setOgData(JSON.parse(cached))
-        return
-      } catch (e) {
-        console.error('Cache parse error:', e)
-      }
-    }
-
-    setLoading(true)
-    setError(null)
-    
-    // Since we can't fetch directly due to CORS, we'll use the basic event data
-    // and try to fetch via an API route if available
-    const basicOgData = {
-      title: event?.title,
-      description: `${event?.dateStr} • ${event?.time} • ${event?.location}`,
-      url: event?.url
-    }
-    
-    try {
-      // Try to fetch from an API route that can handle CORS
-      const response = await fetch(`/api/opengraph?url=${encodeURIComponent(url)}`)
-      
-      if (response.ok) {
-        const ogData = await response.json()
-        
-        // Cache the result
-        sessionStorage.setItem(cacheKey, JSON.stringify(ogData))
-        setOgData(ogData)
-      } else {
-        // Use basic data if API fails
-        setOgData(basicOgData)
-      }
-    } catch (err) {
-      console.error('Error fetching OpenGraph data:', err)
-      // Fallback to basic event data
-      setOgData(basicOgData)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const parseOpenGraphTags = (html: string): OpenGraphData => {
-    const ogData: OpenGraphData = {}
-    
-    // Parse OG tags using regex
-    const metaRegex = /<meta\s+(?:property|name)=["'](?:og:|twitter:)?([^"']+)["']\s+content=["']([^"']+)["']/gi
-    let match
-    
-    while ((match = metaRegex.exec(html)) !== null) {
-      const property = match[1].toLowerCase()
-      const content = match[2]
-      
-      if (property === 'title' || property === 'og:title') {
-        ogData.title = content
-      } else if (property === 'description' || property === 'og:description') {
-        ogData.description = content
-      } else if (property === 'image' || property === 'og:image') {
-        ogData.image = content
-      } else if (property === 'site_name' || property === 'og:site_name') {
-        ogData.site_name = content
-      }
-    }
-    
-    // Fallback to regular title tag if no OG title
-    if (!ogData.title) {
-      const titleMatch = html.match(/<title>([^<]+)<\/title>/i)
-      if (titleMatch) {
-        ogData.title = titleMatch[1]
-      }
-    }
-    
-    return ogData
-  }
 
   if (!event) {
     return (

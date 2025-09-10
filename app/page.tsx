@@ -5,6 +5,7 @@ import CalendarWeek from '@/components/CalendarWeek'
 import BookmarksList from '@/components/BookmarksList'
 import EventPreview from '@/components/EventPreview'
 import { parseCSV, getWeekNumber, getWeekStart, Event } from '@/lib/csvParser'
+import { prioritizeEvents } from '@/lib/opengraphQueue'
 import styles from './page.module.css'
 
 export default function HomePage() {
@@ -43,6 +44,14 @@ export default function HomePage() {
       const text = await response.text()
       const parsedEvents = parseCSV(text)
       setEvents(parsedEvents)
+      
+      // Start fetching OpenGraph data with prioritization
+      prioritizeEvents(parsedEvents)
+      
+      // Scroll to today on first load
+      setTimeout(() => {
+        scrollToToday()
+      }, 100)
     } catch (error) {
       console.error('Error loading CSV:', error)
     }
