@@ -46,7 +46,7 @@ export function parseEventDate(dateStr: string, month: string): Date | null {
   return new Date(year, monthIndex, day)
 }
 
-export function parseCSV(text: string, filterPastEvents: boolean = false): Event[] {
+export function parseCSV(text: string, filterPastEvents: boolean = false, isCerebralCSV: boolean = false): Event[] {
   const lines = text.split('\n')
   const events: Event[] = []
   
@@ -59,12 +59,22 @@ export function parseCSV(text: string, filterPastEvents: boolean = false): Event
   currentWeekStart.setDate(today.getDate() - today.getDay())
   currentWeekStart.setHours(0, 0, 0, 0)
   
-  for (let i = 6; i < lines.length; i++) {
+  // Different starting line for different CSV formats
+  // cerebral.csv has no metadata rows, just header at line 0
+  // events.csv has metadata rows, data starts at line 6
+  const startLine = isCerebralCSV ? 1 : 6
+  
+  for (let i = startLine; i < lines.length; i++) {
     const line = lines[i].trim()
     if (!line) continue
     
     const parts = parseCSVLine(line)
     if (parts.length < 6) continue
+    
+    // Skip metadata rows if they exist
+    if (parts[1] && (parts[1].includes('Submit an event') || parts[1].includes('Subscribe to') || parts[1].includes('DM Cerebral Valley'))) {
+      continue
+    }
     
     if (parts[0]) {
       currentMonth = parts[0]

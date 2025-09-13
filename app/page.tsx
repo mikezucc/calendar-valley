@@ -23,6 +23,29 @@ export default function HomePage() {
   const calendarRef = useRef<HTMLDivElement>(null)
   const loadedWeeks = useRef<Set<number>>(new Set())
 
+  const mergeEvents = (techWeekEvents: Event[], cerebralEvents: Event[]): Event[] => {
+    // Create a map to track unique events by title and date
+    const eventMap = new Map<string, Event>()
+    
+    // Add all Tech Week events first
+    techWeekEvents.forEach(event => {
+      // Create a unique key from title and date
+      const key = `${event.title.toLowerCase().replace(/\[tech week\]/gi, '').trim()}_${event.date.getTime()}`
+      eventMap.set(key, event)
+    })
+    
+    // Add Cerebral Valley events, skipping duplicates
+    cerebralEvents.forEach(event => {
+      const key = `${event.title.toLowerCase().replace(/\[tech week\]/gi, '').trim()}_${event.date.getTime()}`
+      if (!eventMap.has(key)) {
+        eventMap.set(key, event)
+      }
+    })
+    
+    // Convert back to array and sort by date
+    return Array.from(eventMap.values()).sort((a, b) => a.date.getTime() - b.date.getTime())
+  }
+
   useEffect(() => {
     loadCSV()
     const saved = localStorage.getItem('bookmarks')
@@ -65,11 +88,41 @@ export default function HomePage() {
 
   const loadCSV = async () => {
     try {
-      const response = await fetch('/events.csv')
-      const text = await response.text()
-      // Filter to only show current week and future events
-      const parsedEvents = parseCSV(text, true)
-      setEvents(parsedEvents)
+      // Try to load both CSV files
+      const loadPromises = [
+        fetch('/events.csv').catch(err => {
+          console.warn('Could not load events.csv:', err)
+          return null
+        }),
+        fetch('/cerebral.csv').catch(err => {
+          console.warn('Could not load cerebral.csv:', err)
+          return null
+        })
+      ]
+      
+      const [eventsResponse, cerebralResponse] = await Promise.all(loadPromises)
+      
+      let techWeekEvents: Event[] = []
+      let cerebralEvents: Event[] = []
+      
+      // Parse events.csv if available
+      if (eventsResponse && eventsResponse.ok) {
+        const eventsText = await eventsResponse.text()
+        techWeekEvents = parseCSV(eventsText, true)
+        console.log(`Loaded ${techWeekEvents.length} events from events.csv`)
+      }
+      
+      // Parse cerebral.csv if available
+      if (cerebralResponse && cerebralResponse.ok) {
+        const cerebralText = await cerebralResponse.text()
+        cerebralEvents = parseCSV(cerebralText, true, true) // third param indicates it's cerebral.csv
+        console.log(`Loaded ${cerebralEvents.length} events from cerebral.csv`)
+      }
+      
+      // Merge events and remove duplicates
+      const mergedEvents = mergeEvents(techWeekEvents, cerebralEvents)
+      console.log(`Total events after merging: ${mergedEvents.length}`)
+      setEvents(mergedEvents)
       
       // Don't load all OpenGraph data at once
       // Will be loaded based on viewport visibility
@@ -81,7 +134,7 @@ export default function HomePage() {
         loadVisibleWeeksData()
       }, 100)
     } catch (error) {
-      console.error('Error loading CSV:', error)
+      console.error('Error loading CSV files:', error)
     }
   }
 

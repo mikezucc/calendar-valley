@@ -10,7 +10,8 @@
     "parse:tech-week": "cd scripts && python3 parse_tech_week_html.py",
     "merge:events": "python3 scripts/merge_events.py",
     "update:events": "npm run parse:tech-week && npm run merge:events",
-    "setup:python": "python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt"
+    "setup:python": "python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt",
+    "test:csv": "node scripts/test_csv_loading.js"
   },
   "dependencies": {
     "next": "15.5.2",
