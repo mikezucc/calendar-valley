@@ -347,7 +347,7 @@ export default function HomePage() {
         <div className={`${styles.pane} ${styles.eventPane} ${minimizedPanes.event ? styles.minimized : ''}`} id="event-pane">
           <div className={styles.paneHeader}>
             <span className={styles.paneTitle}>
-              {selectedEvent.title}
+              {selectedEvent.title.replace(/\s*\[Tech Week\]\s*/g, '')}
             </span>
             <div className={styles.paneControls}>
               {!minimizedPanes.event && (

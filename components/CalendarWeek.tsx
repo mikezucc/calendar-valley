@@ -116,17 +116,21 @@ export default function CalendarWeek({ weekNum, weekStart, events, bookmarks, on
     return (
       <div className={styles.timeSection}>
         <div className={styles.timeSectionHeader}>{sectionName}</div>
-        {events.map((event, idx) => (
-          <div
-            key={`${sectionName}-${idx}`}
-            className={`${styles.eventItem} ${bookmarks[event.url] ? styles.bookmarked : ''}`}
-            onClick={() => onEventClick(event)}
-          >
-            <span className={styles.eventTime}>{event.time || 'All day'}</span>
-            <span className={styles.eventTitle}>{event.title}</span>
-            <div className={styles.eventLocation}>{event.location}</div>
-          </div>
-        ))}
+        {events.map((event, idx) => {
+          const displayTitle = event.title.replace(/\s*\[Tech Week\]\s*/g, '')
+          
+          return (
+            <div
+              key={`${sectionName}-${idx}`}
+              className={`${styles.eventItem} ${bookmarks[event.url] ? styles.bookmarked : ''}`}
+              onClick={() => onEventClick(event)}
+            >
+              <span className={styles.eventTime}>{event.time || 'All day'}</span>
+              <span className={styles.eventTitle}>{displayTitle}</span>
+              <div className={styles.eventLocation}>{event.location}</div>
+            </div>
+          )
+        })}
       </div>
     )
   }

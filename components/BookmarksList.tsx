@@ -91,7 +91,9 @@ export default function BookmarksList({ bookmarks, onEventClick, onRemoveBookmar
                     {event.time ? event.time.split(' - ')[0] : 'All day'}
                   </div>
                   <div className={styles.bookmarkContent}>
-                    <div className={styles.bookmarkTitle}>{event.title}</div>
+                    <div className={styles.bookmarkTitle}>
+                      {event.title.replace(/\s*\[Tech Week\]\s*/g, '')}
+                    </div>
                     <div className={styles.bookmarkMeta}>
                       {event.location}
                     </div>

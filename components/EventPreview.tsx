@@ -111,7 +111,7 @@ export default function EventPreview({ event }: EventPreviewProps) {
             </div>
             
             <h1 className={styles.eventTitle}>
-              {ogData?.title || event.title}
+              {(ogData?.title || event.title).replace(/\s*\[Tech Week\]\s*/g, '')}
             </h1>
             
             {ogData?.site_name && (
