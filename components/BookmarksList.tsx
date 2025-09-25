@@ -33,22 +33,23 @@ export default function BookmarksList({ bookmarks, onEventClick, onRemoveBookmar
   // Sort bookmarks by date first
   const sortedBookmarks = [...bookmarksList].sort((a, b) => a.date.getTime() - b.date.getTime())
 
-  // Group bookmarks by month and day of week
+  // Group bookmarks by month and actual date (not just day of week)
   const groupedBookmarks: GroupedBookmarks = {}
 
   sortedBookmarks.forEach(event => {
     const monthName = months[event.date.getMonth()]
-    const dayName = daysOfWeek[event.date.getDay()]
-    
+    // Use a unique key that includes the actual date
+    const dayKey = `${daysOfWeek[event.date.getDay()]}_${event.date.getDate()}`
+
     if (!groupedBookmarks[monthName]) {
       groupedBookmarks[monthName] = {}
     }
-    
-    if (!groupedBookmarks[monthName][dayName]) {
-      groupedBookmarks[monthName][dayName] = []
+
+    if (!groupedBookmarks[monthName][dayKey]) {
+      groupedBookmarks[monthName][dayKey] = []
     }
-    
-    groupedBookmarks[monthName][dayName].push(event)
+
+    groupedBookmarks[monthName][dayKey].push(event)
   })
   
   // Sort events within each day by time
@@ -75,12 +76,16 @@ export default function BookmarksList({ bookmarks, onEventClick, onRemoveBookmar
       {Object.entries(groupedBookmarks).map(([month, days]) => (
         <div key={month} className={styles.monthGroup}>
           <div className={styles.monthHeader}>{month} 2025</div>
-          {Object.entries(days).map(([dayOfWeek, events]) => (
-            <div key={`${month}-${dayOfWeek}`} className={styles.dayGroup}>
-              <div className={styles.dayHeader}>
-                {dayOfWeek}, {month} {events[0].date.getDate()}
-                <span className={styles.dayCount}>{events.length}</span>
-              </div>
+          {Object.entries(days).map(([dayKey, events]) => {
+            // Extract day of week and date from the key
+            const [dayOfWeek, dateStr] = dayKey.split('_')
+            const dayDate = parseInt(dateStr || events[0].date.getDate().toString())
+            return (
+              <div key={`${month}-${dayKey}`} className={styles.dayGroup}>
+                <div className={styles.dayHeader}>
+                  {dayOfWeek}, {month} {dayDate}
+                  <span className={styles.dayCount}>{events.length}</span>
+                </div>
               {events.map(event => (
                 <div 
                   key={event.url} 
@@ -110,7 +115,8 @@ export default function BookmarksList({ bookmarks, onEventClick, onRemoveBookmar
                 </div>
               ))}
             </div>
-          ))}
+            )
+          })}
         </div>
       ))}
     </div>
