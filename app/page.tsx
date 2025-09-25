@@ -7,11 +7,12 @@ import EventPreview from '@/components/EventPreview'
 import MobileWarning from '@/components/MobileWarning'
 import { parseCSV, getWeekNumber, getWeekStart, Event } from '@/lib/csvParser'
 import { prioritizeEvents } from '@/lib/opengraphQueue'
+import { bookmarkStorage } from '@/lib/storage'
 import styles from './page.module.css'
 
 export default function HomePage() {
   const [events, setEvents] = useState<Event[]>([])
-  const [bookmarks, setBookmarks] = useState<Record<string, Event>>({})
+  const [bookmarks, setBookmarks] = useState<Record<string, Event>>(bookmarkStorage.getAll())
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [activeMonth, setActiveMonth] = useState<number | null>(null)
   const [showMonthDropdown, setShowMonthDropdown] = useState(false)
@@ -48,19 +49,28 @@ export default function HomePage() {
 
   useEffect(() => {
     loadCSV()
-    const saved = localStorage.getItem('bookmarks')
-    if (saved) {
-      const parsedBookmarks = JSON.parse(saved)
-      // Convert date strings back to Date objects
-      const bookmarksWithDates: Record<string, Event> = {}
-      Object.entries(parsedBookmarks).forEach(([url, event]: [string, any]) => {
-        bookmarksWithDates[url] = {
-          ...event,
-          date: new Date(event.date)
-        }
-      })
-      setBookmarks(bookmarksWithDates)
+    // Load bookmarks from storage
+    const storedBookmarks = bookmarkStorage.getAll()
+    if (Object.keys(storedBookmarks).length > 0) {
+      setBookmarks(storedBookmarks)
+    } else {
+      // Attempt recovery if no bookmarks found
+      if (bookmarkStorage.attemptRecovery()) {
+        setBookmarks(bookmarkStorage.getAll())
+      }
     }
+
+    // Set up storage event listener for cross-tab synchronization
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'calendar_valley_bookmarks' && e.newValue) {
+        // Reload bookmarks when changed in another tab
+        const updatedBookmarks = bookmarkStorage.getAll()
+        setBookmarks(updatedBookmarks)
+      }
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
   }, [])
 
   // Handle scroll events with debouncing
@@ -177,20 +187,17 @@ export default function HomePage() {
   }
 
   const toggleBookmark = (event: Event) => {
-    if (bookmarks[event.url]) {
+    if (bookmarkStorage.has(event.url)) {
       removeBookmark(event.url)
     } else {
-      const newBookmarks = { ...bookmarks, [event.url]: event }
-      setBookmarks(newBookmarks)
-      localStorage.setItem('bookmarks', JSON.stringify(newBookmarks))
+      bookmarkStorage.add(event)
+      setBookmarks(bookmarkStorage.getAll())
     }
   }
 
   const removeBookmark = (url: string) => {
-    const newBookmarks = { ...bookmarks }
-    delete newBookmarks[url]
-    setBookmarks(newBookmarks)
-    localStorage.setItem('bookmarks', JSON.stringify(newBookmarks))
+    bookmarkStorage.remove(url)
+    setBookmarks(bookmarkStorage.getAll())
   }
 
   const scrollToDate = (targetDate: Date) => {
