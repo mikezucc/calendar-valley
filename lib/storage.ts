@@ -13,10 +13,10 @@ export class BookmarkStorage {
   private static instance: BookmarkStorage
   private cache: Record<string, Event> = {}
   private storageAvailable: boolean = false
+  private initialized: boolean = false
 
   private constructor() {
-    this.storageAvailable = this.checkStorageAvailability()
-    this.loadFromStorage()
+    // Don't initialize on construction - wait for client-side
   }
 
   static getInstance(): BookmarkStorage {
@@ -26,8 +26,22 @@ export class BookmarkStorage {
     return BookmarkStorage.instance
   }
 
+  // Initialize storage only when called from client-side
+  initialize(): void {
+    if (this.initialized || typeof window === 'undefined') {
+      return
+    }
+
+    this.storageAvailable = this.checkStorageAvailability()
+    this.loadFromStorage()
+    this.initialized = true
+  }
+
   private checkStorageAvailability(): boolean {
     try {
+      if (typeof window === 'undefined' || !window.localStorage) {
+        return false
+      }
       const test = '__storage_test__'
       localStorage.setItem(test, test)
       localStorage.removeItem(test)
@@ -39,7 +53,7 @@ export class BookmarkStorage {
   }
 
   private loadFromStorage(): void {
-    if (!this.storageAvailable) {
+    if (!this.storageAvailable || typeof window === 'undefined') {
       console.warn('Storage not available, bookmarks will not persist')
       return
     }
@@ -132,7 +146,7 @@ export class BookmarkStorage {
   }
 
   private saveToStorage(): void {
-    if (!this.storageAvailable) {
+    if (!this.storageAvailable || typeof window === 'undefined') {
       console.warn('Cannot save: Storage not available')
       return
     }
@@ -198,20 +212,32 @@ export class BookmarkStorage {
   }
 
   getAll(): Record<string, Event> {
+    if (!this.initialized && typeof window !== 'undefined') {
+      this.initialize()
+    }
     return { ...this.cache }
   }
 
   add(event: Event): void {
+    if (!this.initialized && typeof window !== 'undefined') {
+      this.initialize()
+    }
     this.cache[event.url] = event
     this.saveToStorage()
   }
 
   remove(url: string): void {
+    if (!this.initialized && typeof window !== 'undefined') {
+      this.initialize()
+    }
     delete this.cache[url]
     this.saveToStorage()
   }
 
   has(url: string): boolean {
+    if (!this.initialized && typeof window !== 'undefined') {
+      this.initialize()
+    }
     return url in this.cache
   }
 
@@ -261,7 +287,7 @@ export class BookmarkStorage {
 
   // Attempt to recover from sessionStorage backup
   attemptRecovery(): boolean {
-    if (!this.storageAvailable) return false
+    if (!this.storageAvailable || typeof window === 'undefined') return false
 
     try {
       const backup = sessionStorage.getItem(STORAGE_KEY + '_backup')

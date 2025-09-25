@@ -91,6 +91,68 @@
   display: none;
 }
 
+.feedbackButtons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-left: auto;
+  margin-right: 12px;
+}
+
+.feedbackBtn {
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  height: 28px;
+  box-sizing: border-box;
+}
+
+.feedbackBtn:hover {
+  background: var(--hover);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.emailBtn {
+  min-width: 95px;
+}
+
+.emailRevealed {
+  min-width: 160px;
+  font-family: monospace;
+  font-size: 11px;
+}
+
+.copyToast {
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--accent);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.copyToast.show {
+  opacity: 1;
+}
+
 .paneControls {
   display: flex;
   gap: 8px;

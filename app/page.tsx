@@ -12,10 +12,12 @@ import styles from './page.module.css'
 
 export default function HomePage() {
   const [events, setEvents] = useState<Event[]>([])
-  const [bookmarks, setBookmarks] = useState<Record<string, Event>>(bookmarkStorage.getAll())
+  const [bookmarks, setBookmarks] = useState<Record<string, Event>>({})
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [activeMonth, setActiveMonth] = useState<number | null>(null)
   const [showMonthDropdown, setShowMonthDropdown] = useState(false)
+  const [showEmail, setShowEmail] = useState(false)
+  const [emailCopied, setEmailCopied] = useState(false)
   const [minimizedPanes, setMinimizedPanes] = useState<Record<string, boolean>>({
     calendar: false,
     event: false,
@@ -47,10 +49,17 @@ export default function HomePage() {
     return Array.from(eventMap.values()).sort((a, b) => a.date.getTime() - b.date.getTime())
   }
 
+  // Load CSV on mount
   useEffect(() => {
     loadCSV()
-    // Load bookmarks from storage
+  }, [])
+
+  // Load bookmarks only on client-side after mount
+  useEffect(() => {
+    // Initialize storage and load bookmarks
+    bookmarkStorage.initialize()
     const storedBookmarks = bookmarkStorage.getAll()
+
     if (Object.keys(storedBookmarks).length > 0) {
       setBookmarks(storedBookmarks)
     } else {
@@ -249,6 +258,23 @@ export default function HomePage() {
     setMinimizedPanes(prev => ({ ...prev, [pane]: !prev[pane] }))
   }
 
+  const handleEmailClick = async () => {
+    const email = 'michael@gatsby.events'
+
+    if (showEmail) {
+      // Copy to clipboard
+      try {
+        await navigator.clipboard.writeText(email)
+        setEmailCopied(true)
+        setTimeout(() => setEmailCopied(false), 2000)
+      } catch (err) {
+        console.error('Failed to copy email:', err)
+      }
+    } else {
+      setShowEmail(true)
+    }
+  }
+
   const groupEventsByWeek = () => {
     const weeks: Record<number, { start: Date; events: Event[] }> = {}
     
@@ -279,6 +305,25 @@ export default function HomePage() {
         <div className={`${styles.pane} ${minimizedPanes.calendar ? styles.minimized : ''}`} id="calendar-pane">
         <div className={styles.paneHeader}>
           <span className={styles.paneTitle}>2025 AI Events</span>
+          <div className={styles.feedbackButtons}>
+            <a
+              href="https://github.com/mikezucc/calendar-valley/issues"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.feedbackBtn}
+            >
+              Report Issue
+            </a>
+            <button
+              onClick={handleEmailClick}
+              className={`${styles.feedbackBtn} ${styles.emailBtn} ${showEmail ? styles.emailRevealed : ''}`}
+            >
+              {showEmail ? 'michael@gatsby.events' : 'Email Michael'}
+              <span className={`${styles.copyToast} ${emailCopied ? styles.show : ''}`}>
+                Copied!
+              </span>
+            </button>
+          </div>
           <div className={styles.paneControls}>
             <button 
               className={styles.todayBtn}
