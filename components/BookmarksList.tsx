@@ -56,15 +56,26 @@ export default function BookmarksList({ bookmarks, onEventClick, onRemoveBookmar
   Object.values(groupedBookmarks).forEach(month => {
     Object.values(month).forEach(dayEvents => {
       dayEvents.sort((a, b) => {
-        // Parse time strings to compare (e.g., "10:00 AM", "2:30 PM")
+        // Parse time strings to compare (e.g., "10:00 AM", "2:30 PM", "6:00 PM - 8:00 PM")
         const parseTime = (timeStr: string) => {
           if (!timeStr || timeStr === 'All day') return 0
-          const [time, period] = timeStr.split(' ')
-          const [hours, minutes = '00'] = time.split(':')
-          let hour = parseInt(hours)
+
+          // Extract just the start time if it's a range
+          const startTime = timeStr.split(' - ')[0].trim()
+
+          // Match time pattern with AM/PM
+          const match = startTime.match(/(\d{1,2}):?(\d{2})?\s*(AM|PM)/i)
+          if (!match) return 0
+
+          let hour = parseInt(match[1])
+          const minutes = parseInt(match[2] || '0')
+          const period = match[3].toUpperCase()
+
+          // Convert to 24-hour format
           if (period === 'PM' && hour !== 12) hour += 12
           if (period === 'AM' && hour === 12) hour = 0
-          return hour * 60 + parseInt(minutes)
+
+          return hour * 60 + minutes
         }
         return parseTime(a.time) - parseTime(b.time)
       })
